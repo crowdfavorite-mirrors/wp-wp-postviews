@@ -35,6 +35,10 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 == Changelog ==
+= Version 1.62 (29-11-2012) =
+* Add "Views" Column To Manage Pages In WP-Admin
+* Add Sortable "Views" Column To Manage Posts/Pages In WP-Admin
+
 = Version 1.61 (21-05-2012) =
 * Move AJAX Request to wp-admin/admin-ajax.php
 
