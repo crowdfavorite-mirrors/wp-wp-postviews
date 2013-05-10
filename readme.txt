@@ -1,10 +1,10 @@
 === WP-PostViews ===
-Contributors: GamerZ
-Donate link: http://lesterchan.net/site/donation/
-Tags: views, hits, counter, postviews
-Requires at least: 2.8
-Tested up to: 3.3.2
-Stable tag: trunk
+Contributors: GamerZ  
+Donate link: http://lesterchan.net/site/donation/  
+Tags: views, hits, counter, postviews  
+Requires at least: 2.8  
+Tested up to: 3.5  
+Stable tag: trunk  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -35,12 +35,15 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 == Changelog ==
+= Version 1.63 (07-05-2013) =
+* NEW: Added nonce To PostViews Options Admin Page
+
 = Version 1.62 (29-11-2012) =
-* Add "Views" Column To Manage Pages In WP-Admin
-* Add Sortable "Views" Column To Manage Posts/Pages In WP-Admin
+* NEW: Add "Views" Column To Manage Pages In WP-Admin
+* NEW: Add Sortable "Views" Column To Manage Posts/Pages In WP-Admin
 
 = Version 1.61 (21-05-2012) =
-* Move AJAX Request to wp-admin/admin-ajax.php
+* FIXED: Move AJAX Request to wp-admin/admin-ajax.php
 
 = Version 1.60 (18-02-2011) =
 * NEW: Added Views Count To Edit Posts Screen
@@ -68,11 +71,11 @@ Enables you to display how many times a post/page had been viewed.
 * NEW: Added get_least_viewed() And get_least_viewed_category() By JBrinx
 * FIXED: "views" Custom Field Gets Created Now When Post Is Published
 
-= Version 1.31 (16-07-2008) =		
+= Version 1.31 (16-07-2008) =
 * NEW: Works For WordPress 2.6
 * NEW: Renamed GET Variables sortby To v_sortby And orderby To v_orderby
 * NEW: Better Translation Using __ngetext() by Anna Ozeritskaya
-* FIXED: Able To Use v_sortby And v_orderby in query_posts()						
+* FIXED: Able To Use v_sortby And v_orderby in query_posts()
 
 = Version 1.30 (01-06-2008) =
 * NEW: Uses /wp-postviews/ Folder Instead Of /postviews/
@@ -90,7 +93,7 @@ Enables you to display how many times a post/page had been viewed.
 * NEW: Ability To Uninstall WP-PostViews
 * NEW: Uses WP-Stats Filter To Add Stats Into WP-Stats Page
 
-= Version 1.11 (01-06-2007) =		
+= Version 1.11 (01-06-2007) =
 * FIXED: Wrong URL For Page Under Most Viewed Posts Listing
 
 = Version 1.10 (01-02-2007) =
@@ -102,11 +105,11 @@ Enables you to display how many times a post/page had been viewed.
 = Version 1.02 (01-10-2006) =
 * NEW: Change In get_most_viewed() To Accommodate Latest Version Of WP-Stats
 
-= Version 1.01 (01-07-2006) =		
+= Version 1.01 (01-07-2006) =
 * NEW: Added Get Total Views Function
 * FIXED: Modified Get Most Viewed Post Function
 
-= Version 1.00 (01-03-2006) =		
+= Version 1.00 (01-03-2006) =
 * NEW: Initial Release
 
 == Installation ==
@@ -128,7 +131,7 @@ Enables you to display how many times a post/page had been viewed.
 2. Open `wp-content/plugins` Folder
 3. Put/Overwrite: `Folder: wp-postviews`
 4. Activate `WP-PostViews` Plugin
-	
+
 == Upgrade Notice ==
 
 N/A
@@ -145,7 +148,7 @@ N/A
 
 = How To View Stats (Outside WP Loop) =
 
-= To Display Least Viewed Posts = 
+= To Display Least Viewed Posts =
 * Use:
 <code>
 <?php if (function_exists('get_least_viewed')): ?>
@@ -171,7 +174,7 @@ N/A
 * The second value you pass in is the maximum number of post you want to get.
 * Default: get_most_viewed('both', 10);
 
-= To Display Least Viewed Posts By Tag = 
+= To Display Least Viewed Posts By Tag =
 * Use:
 <code>
 <?php if (function_exists('get_least_viewed_tag')): ?>
@@ -185,7 +188,7 @@ N/A
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed_tag(1, 'both', 10);
 
-= To Display Most Viewed Posts By Tag = 
+= To Display Most Viewed Posts By Tag =
 * Use:
 <code>
 <?php if (function_exists('get_most_viewed_tag')): ?>
@@ -207,7 +210,7 @@ N/A
 		<?php get_least_viewed_category(); ?>
 	</ul>
 <?php endif; ?>
-</code>					
+</code>
 * The first value you pass in is the category id.
 * The second value you pass in is what you want to get, 'post', 'page' or 'both'.
 * The third value you pass in is the maximum number of post you want to get.
@@ -221,7 +224,7 @@ N/A
 		<?php get_most_viewed_category(); ?>
 	</ul>
 <?php endif; ?>
-</code>			
+</code>
 * The first value you pass in is the category id.
 * The second value you pass in is what you want to get, 'post', 'page' or 'both'.
 * The third value you pass in is the maximum number of post you want to get.
