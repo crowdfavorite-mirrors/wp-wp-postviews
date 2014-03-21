@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 2.8  
-Tested up to: 3.5  
-Stable tag: trunk  
+Tested up to: 3.8  
+Stable tag: 1.66  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -35,6 +35,15 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 == Changelog ==
+= Version 1.66 =
+* NEW: Supports MultiSite Network Activation
+* NEW: Add %POST_DATE% and %POST_TIME% to template variables
+* NEW: Add China isearch engines bots
+* NEW: Ability to pass in an array of post types for get_most/least_*() functions. Props Leo Plaw.
+* FIXED: Moved uninstall to uninstall.php and hence fix missing nonce. Props Julio Potier.
+* FIXED: Notices and better way to get views from meta. Props daankortenbach.
+* FIXED: No longer needing add_post_meta() if update_post_meta() fails.
+
 = Version 1.65 (02-06-2013) =
 * FIXED: Views not showing in WP-Admin if "Display Options" is not set to "Display to everyone"
 
@@ -164,7 +173,7 @@ N/A
 	</ul>
 <?php endif; ?>
 </code>
-* The first value you pass in is what you want to get, 'post', 'page' or 'both'.
+* The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The second value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed('both', 10);
 
@@ -177,7 +186,7 @@ N/A
 	</ul>
 <?php endif; ?>
 </code>
-* The first value you pass in is what you want to get, 'post', 'page' or 'both'.
+* The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The second value you pass in is the maximum number of post you want to get.
 * Default: get_most_viewed('both', 10);
 
@@ -191,7 +200,7 @@ N/A
 <?php endif; ?>
 </code>
 * The first value you pass in is the tag id.
-* The second value you pass in is what you want to get, 'post', 'page' or 'both'.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed_tag(1, 'both', 10);
 
@@ -205,7 +214,7 @@ N/A
 <?php endif; ?>
 </code>
 * The first value you pass in is the tag id.
-* The second value you pass in is what you want to get, 'post', 'page' or 'both'.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_most_viewed_tag(1, 'both', 10);
 
@@ -219,7 +228,7 @@ N/A
 <?php endif; ?>
 </code>
 * The first value you pass in is the category id.
-* The second value you pass in is what you want to get, 'post', 'page' or 'both'.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed_category(1, 'both', 10);
 
@@ -233,11 +242,11 @@ N/A
 <?php endif; ?>
 </code>
 * The first value you pass in is the category id.
-* The second value you pass in is what you want to get, 'post', 'page' or 'both'.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_most_viewed_category(1, 'both', 10);
 
 = To Sort Most/Least Viewed Posts =
-* You can use: `<?php query_posts('v_sortby=views&amp;v_orderby=desc') ?>`
-* Or pass in the variables to the URL: `http://yoursite.com/?v_sortby=views&amp;v_orderby=desc`
-* You can replace desc with asc if you want the least viewed posts.
+* You can use: `<?php query_posts( array( 'meta_key' => 'views', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); ?>`
+* Or pass in the variables to the URL: `http://yoursite.com/?v_sortby=views&v_orderby=desc`
+* You can replace DESC  with ASC if you want the least viewed posts.

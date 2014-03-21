@@ -2,8 +2,8 @@
 /*
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
-Description: Enables you to display how many times a post/page had been viewed. Modified by <a href="http://DPotter.net/Technical/" title="David's Technical Musings">David Potter</a> to include options for when and where to display view counts.
-Version: 1.65
+Description: Enables you to display how many times a post/page had been viewed.
+Version: 1.66
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-postviews
@@ -11,7 +11,7 @@ Text Domain: wp-postviews
 
 
 /*
-	Copyright 2013  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2014  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@ Text Domain: wp-postviews
 
 
 ### Create Text Domain For Translations
-add_action('init', 'postviews_textdomain');
+add_action( 'plugins_loaded', 'postviews_textdomain' );
 function postviews_textdomain() {
-	load_plugin_textdomain('wp-postviews', false, 'wp-postviews');
+	load_plugin_textdomain( 'wp-postviews', false, dirname( plugin_basename( __FILE__ ) ) );
 }
 
 
@@ -56,8 +56,8 @@ function process_postviews() {
 		if(is_single() || is_page()) {
 			$id = intval($post->ID);
 			$views_options = get_option('views_options');
-			$post_views = get_post_custom($id);
-			$post_views = intval($post_views['views'][0]);
+			if ( ! $post_views = get_post_meta( $post->ID, 'views', true ) )
+				$post_views = 0;
 			$should_count = false;
 			switch(intval($views_options['count'])) {
 				case 0:
@@ -75,7 +75,38 @@ function process_postviews() {
 					break;
 			}
 			if(intval($views_options['exclude_bots']) == 1) {
-				$bots = array('Google Bot' => 'googlebot', 'Google Bot' => 'google', 'MSN' => 'msnbot', 'Alex' => 'ia_archiver', 'Lycos' => 'lycos', 'Ask Jeeves' => 'jeeves', 'Altavista' => 'scooter', 'AllTheWeb' => 'fast-webcrawler', 'Inktomi' => 'slurp@inktomi', 'Turnitin.com' => 'turnitinbot', 'Technorati' => 'technorati', 'Yahoo' => 'yahoo', 'Findexa' => 'findexa', 'NextLinks' => 'findlinks', 'Gais' => 'gaisbo', 'WiseNut' => 'zyborg', 'WhoisSource' => 'surveybot', 'Bloglines' => 'bloglines', 'BlogSearch' => 'blogsearch', 'PubSub' => 'pubsub', 'Syndic8' => 'syndic8', 'RadioUserland' => 'userland', 'Gigabot' => 'gigabot', 'Become.com' => 'become.com');
+				$bots = array
+				(
+					  'Google Bot' => 'googlebot'
+					, 'Google Bot' => 'google'
+					, 'MSN' => 'msnbot'
+					, 'Alex' => 'ia_archiver'
+					, 'Lycos' => 'lycos'
+					, 'Ask Jeeves' => 'jeeves'
+					, 'Altavista' => 'scooter'
+					, 'AllTheWeb' => 'fast-webcrawler'
+					, 'Inktomi' => 'slurp@inktomi'
+					, 'Turnitin.com' => 'turnitinbot'
+					, 'Technorati' => 'technorati'
+					, 'Yahoo' => 'yahoo'
+					, 'Findexa' => 'findexa'
+					, 'NextLinks' => 'findlinks'
+					, 'Gais' => 'gaisbo'
+					, 'WiseNut' => 'zyborg'
+					, 'WhoisSource' => 'surveybot'
+					, 'Bloglines' => 'bloglines'
+					, 'BlogSearch' => 'blogsearch'
+					, 'PubSub' => 'pubsub'
+					, 'Syndic8' => 'syndic8'
+					, 'RadioUserland' => 'userland'
+					, 'Gigabot' => 'gigabot'
+					, 'Become.com' => 'become.com'
+					, 'Baidu' => 'baiduspider'
+					, 'so.com' => '360spider'
+					, 'Sogou' => 'spider'
+					, 'soso.com' => 'sosospider'
+					, 'Yandex' => 'yandex'
+				);
 				$useragent = $_SERVER['HTTP_USER_AGENT'];
 				foreach ($bots as $name => $lookfor) {
 					if (stristr($useragent, $lookfor) !== false) {
@@ -85,9 +116,7 @@ function process_postviews() {
 				}
 			}
 			if($should_count && (!defined('WP_CACHE') || !WP_CACHE)) {
-				if(!update_post_meta($id, 'views', ($post_views+1))) {
-					add_post_meta($id, 'views', 1, true);
-				}
+				update_post_meta($id, 'views', ($post_views + 1));
 			}
 		}
 	}
@@ -100,6 +129,7 @@ function wp_postview_cache_count_enqueue() {
 	global $user_ID, $post;
 	if (!wp_is_post_revision($post) && (is_single() || is_page())) {
 		$views_options = get_option('views_options');
+		$should_count = false;
 		switch(intval($views_options['count'])) {
 			case 0:
 				$should_count = true;
@@ -186,7 +216,12 @@ if(!function_exists('get_least_viewed')) {
 		$temp = '';
 		$output = '';
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -205,6 +240,8 @@ if(!function_exists('get_least_viewed')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -228,7 +265,12 @@ if(!function_exists('get_most_viewed')) {
 		$temp = '';
 		$output = '';
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -247,6 +289,8 @@ if(!function_exists('get_most_viewed')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -275,7 +319,12 @@ if(!function_exists('get_least_viewed_category')) {
 			$category_sql = "$wpdb->term_taxonomy.term_id = $category_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -294,6 +343,8 @@ if(!function_exists('get_least_viewed_category')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -322,7 +373,12 @@ if(!function_exists('get_most_viewed_category')) {
 			$category_sql = "$wpdb->term_taxonomy.term_id = $category_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -341,6 +397,8 @@ if(!function_exists('get_most_viewed_category')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -369,7 +427,12 @@ if(!function_exists('get_most_viewed_tag')) {
 			$tag_sql = "$wpdb->term_taxonomy.term_id = $tag_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -388,6 +451,8 @@ if(!function_exists('get_most_viewed_tag')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -416,7 +481,12 @@ if(!function_exists('get_least_viewed_tag')) {
 			$tag_sql = "$wpdb->term_taxonomy.term_id = $tag_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -435,6 +505,8 @@ if(!function_exists('get_least_viewed_tag')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -661,9 +733,7 @@ function increment_views() {
 		if($post_id > 0 && defined('WP_CACHE') && WP_CACHE) {
 			$post_views = get_post_custom($post_id);
 			$post_views = intval($post_views['views'][0]);
-			if(!update_post_meta($post_id, 'views', ($post_views + 1))) {
-				add_post_meta($post_id, 'views', 1, true);
-			}
+			update_post_meta($post_id, 'views', ($post_views + 1));
 			echo ($post_views + 1);
 		}
 	}
@@ -676,7 +746,7 @@ add_filter('manage_posts_columns', 'add_postviews_column');
 add_action('manage_pages_custom_column', 'add_postviews_column_content');
 add_filter('manage_pages_columns', 'add_postviews_column');
 function add_postviews_column($defaults) {
-    $defaults['views'] = 'Views';
+    $defaults['views'] = __( 'Views', 'wp-postviews' );
     return $defaults;
 }
 
@@ -816,31 +886,48 @@ function sort_postviews($query) {
 
 
 ### Function: Init WP-PostViews Widget
-add_action('widgets_init', 'widget_views_init');
+add_action( 'widgets_init', 'widget_views_init' );
 function widget_views_init() {
-	postviews_textdomain();
-	register_widget('WP_Widget_PostViews');
+	register_widget( 'WP_Widget_PostViews' );
 }
 
 
 ### Function: Post Views Options
-add_action('activate_wp-postviews/wp-postviews.php', 'views_init');
-function views_init() {
-	postviews_textdomain();
+register_activation_hook( __FILE__, 'views_activation' );
+function views_activation( $network_wide ) {
 	// Add Options
-	$views_options = array();
-	$views_options['count'] = 1;
-	$views_options['exclude_bots'] = 0;
-	$views_options['display_home'] = 0;
-	$views_options['display_single'] = 0;
-	$views_options['display_page'] = 0;
-	$views_options['display_archive'] = 0;
-	$views_options['display_search'] = 0;
-	$views_options['display_other'] = 0;
-	$views_options['template'] = __('%VIEW_COUNT% views', 'wp-postviews');
-	$views_options['most_viewed_template'] = '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% '.__('views', 'wp-postviews').'</li>';
-	add_option('views_options', $views_options, 'Post Views Options');
-	// Version 1.50 Upgrade
-	delete_option('widget_views_most_viewed');
+	$option_name = 'views_options';
+	$option = array(
+		  'count'                   => 1
+		, 'exclude_bots'            => 0
+		, 'display_home'            => 0
+		, 'display_single'          => 0
+		, 'display_page'            => 0
+		, 'display_archive'         => 0
+		, 'display_search'          => 0
+		, 'display_other'           => 0
+		, 'template'                => __('%VIEW_COUNT% views', 'wp-postviews')
+		, 'most_viewed_template'    => '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% '.__('views', 'wp-postviews').'</li>'
+	);
+
+	if ( is_multisite() && $network_wide )
+	{
+		$ms_sites = wp_get_sites();
+
+		if( 0 < sizeof( $ms_sites ) )
+		{
+			foreach ( $ms_sites as $ms_site )
+			{
+				switch_to_blog( $ms_site['blog_id'] );
+				add_option( $option_name, $option );
+			}
+		}
+
+		restore_current_blog();
+	}
+	else
+	{
+		add_option( $option_name, $option );
+	}
 }
 ?>
