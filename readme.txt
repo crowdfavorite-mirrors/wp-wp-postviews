@@ -3,29 +3,37 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 3.0  
-Tested up to: 3.9
-Stable tag: 1.67   
+Tested up to: 4.1  
+Stable tag: 1.69  
 
 Enables you to display how many times a post/page had been viewed.
 
 == Description ==
 
+= Build Status =
+[![Build Status](https://travis-ci.org/lesterchan/wp-postviews.svg?branch=master)](https://travis-ci.org/lesterchan/wp-postviews)
+
 = Development =
-* [https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
+[https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
 
 = Translations =
-* [http://dev.wp-plugins.org/browser/wp-postviews/i18n/](http://dev.wp-plugins.org/browser/wp-postviews/i18n/ "http://dev.wp-plugins.org/browser/wp-postviews/i18n/")
+[http://dev.wp-plugins.org/browser/wp-postviews/i18n/](http://dev.wp-plugins.org/browser/wp-postviews/i18n/ "http://dev.wp-plugins.org/browser/wp-postviews/i18n/")
 
 = Credits =
-* WP-Cache/WP-SuperCache Compatibility By [Thaya Kareeson](http://omninoggin.com/ "Thaya Kareeson")
-* __ngetext() by [Anna Ozeritskaya](http://hweia.ru/ "Anna Ozeritskaya")
-* Right To Left Language Support by [Kambiz R. Khojasteh](http://persian-programming.com/ "Kambiz R. Khojasteh")
-* Options To Display Views On Certain Places by [David Potter](http://dpotter.net/Technical/ "David Potter")
+* Plugin icon by [Iconmoon](http://www.icomoon.io) from [Flaticon](http://www.flaticon.com)
 
 = Donations =
-* I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
+I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 == Changelog ==
+= Version 1.69 =
+* NEW: Shortcode `[views]` or [views id="POST_ID"]` to embed view count into post
+* NEW: Added template variable `%VIEW_COUNT_ROUNDED%` to support rounded view count like 10.1k or 11.2M
+
+= Version 1.68 =
+* NEW: Added action hook 'postviews_increment_views' and 'postviews_increment_views_ajax'
+* NEW: Allow custom post type to be chosen under the widget
+
 = Version 1.67 =
 * NEW: Allow user to not use AJAX to update the views even though WP_CACHE is true
 
@@ -134,6 +142,7 @@ Enables you to display how many times a post/page had been viewed.
 2. You may place it in archive.php, single.php, post.php or page.php also.
 3. Find: `<?php while (have_posts()) : the_post(); ?>`
 4. Add Anywhere Below It (The Place You Want The Views To Show): `<?php if(function_exists('the_views')) { the_views(); } ?>`
+5. Or you can use the shortcode `[views]` or `[views id="1"]` (where 1 is the post ID) in a post
 
 == Upgrading ==
 
@@ -149,6 +158,7 @@ N/A
 == Screenshots ==
 
 1. PostViews
+2. Admin - PostViews Options
 
 == Frequently Asked Questions ==
 

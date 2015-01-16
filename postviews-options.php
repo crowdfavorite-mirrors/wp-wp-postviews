@@ -10,17 +10,17 @@ $text = '';
 if(!empty($_POST['Submit'] )) {
 	check_admin_referer( 'wp-postviews_options' );
 	$views_options = array(
-		  'count'                   => intval( $_POST['views_count'] )
-		, 'exclude_bots'            => intval( $_POST['views_exclude_bots'] )
-		, 'display_home'            => intval( $_POST['views_display_home'] )
-		, 'display_single'          => intval( $_POST['views_display_single'] )
-		, 'display_page'            => intval( $_POST['views_display_page'] )
-		, 'display_archive'         => intval( $_POST['views_display_archive'] )
-		, 'display_search'          => intval( $_POST['views_display_search'] )
-		, 'display_other'           => intval( $_POST['views_display_other'] )
-		, 'use_ajax'                => intval( $_POST['views_use_ajax'] )
-		, 'template'                => trim( $_POST['views_template_template'] )
-		, 'most_viewed_template'    => trim( $_POST['views_template_most_viewed'] )
+		  'count'                   => intval( views_options_parse('views_count') )
+		, 'exclude_bots'            => intval( views_options_parse('views_exclude_bots') )
+		, 'display_home'            => intval( views_options_parse('views_display_home') )
+		, 'display_single'          => intval( views_options_parse('views_display_single') )
+		, 'display_page'            => intval( views_options_parse('views_display_page') )
+		, 'display_archive'         => intval( views_options_parse('views_display_archive') )
+		, 'display_search'          => intval( views_options_parse('views_display_search') )
+		, 'display_other'           => intval( views_options_parse('views_display_other') )
+		, 'use_ajax'                => intval( views_options_parse('views_use_ajax') )
+		, 'template'                => trim( views_options_parse('views_template_template') )
+		, 'most_viewed_template'    => trim( views_options_parse('views_template_most_viewed') )
 	);
 	$update_views_queries = array();
 	$update_views_text = array();
@@ -30,12 +30,12 @@ if(!empty($_POST['Submit'] )) {
 
 	foreach( $update_views_queries as $update_views_query ) {
 		if( $update_views_query ) {
-			$text .= '<font style="color: green;">' . $update_views_text[$i] . ' ' . __( 'Updated', 'wp-postviews' ) . '</font><br />';
+			$text .= '<p style="color: green;">' . $update_views_text[$i] . ' ' . __( 'Updated', 'wp-postviews' ) . '</p>';
 		}
 		$i++;
 	}
 	if( empty( $text ) ) {
-		$text = '<font style="color: red;">' . __( 'No Post Views Option Updated', 'wp-postviews' ) . '</font>';
+		$text = '<p style="color: red;">' . __( 'No Post Views Option Updated', 'wp-postviews' ) . '</p>';
 	}
 }
 
@@ -100,12 +100,15 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 					</p>
 				</td>
 			</tr>
+		<?php else: ?>
+			<input type="hidden" name="views_use_ajax" value="0" />
 		<?php endif; ?>
 		<tr>
 			<td valign="top">
 				<strong><?php _e( 'Views Template:', 'wp-postviews' ); ?></strong><br /><br />
 				<?php _e( 'Allowed Variables:', 'wp-postviews' ); ?><br />
-				- %VIEW_COUNT%<br /><br />
+				- %VIEW_COUNT%<br />
+				- %VIEW_COUNT_ROUNDED%<br /><br />
 				<input type="button" name="RestoreDefault" value="<?php _e( 'Restore Default Template', 'wp-postviews' ); ?>" onclick="views_default_templates( 'template' );" class="button" />
 			</td>
 			<td valign="top">
@@ -117,6 +120,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				<strong><?php _e( 'Most Viewed Template:', 'wp-postviews' ); ?></strong><br /><br />
 				<?php _e( 'Allowed Variables:', 'wp-postviews' ); ?><br />
 				- %VIEW_COUNT%<br />
+				- %VIEW_COUNT_ROUNDED%<br />
 				- %POST_TITLE%<br />
 				- %POST_DATE%<br />
 				- %POST_TIME%<br />
@@ -144,7 +148,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 			</td>
 		</tr>
 		<tr>
-			<td valign="top"><strong><?php _e( 'Singe Posts:', 'wp-postviews' ); ?></strong></td>
+			<td valign="top"><strong><?php _e( 'Single Posts:', 'wp-postviews' ); ?></strong></td>
 			<td>
 				<select name="views_display_single" size="1">
 					<option value="0"<?php selected( '0', $views_options['display_single'] ); ?>><?php _e( 'Display to everyone', 'wp-postviews' ); ?></option>

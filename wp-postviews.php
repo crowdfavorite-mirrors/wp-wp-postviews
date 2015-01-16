@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.67
+Version: 1.69
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-postviews
@@ -118,6 +118,7 @@ function process_postviews() {
 			}
 			if( $should_count && ( ( isset( $views_options['use_ajax'] ) && intval( $views_options['use_ajax'] ) === 0 ) || ( !defined( 'WP_CACHE' ) || !WP_CACHE ) ) ) {
 				update_post_meta( $id, 'views', ( $post_views + 1 ) );
+				do_action( 'postviews_increment_views', ( $post_views + 1 ) );
 			}
 		}
 	}
@@ -155,8 +156,8 @@ function wp_postview_cache_count_enqueue() {
 				break;
 		}
 		if ( $should_count ) {
-			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array( 'jquery' ), '1.67', true );
-			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ), 'post_id' => intval( $post->ID ) ) );
+			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array( 'jquery' ), '1.68', true );
+			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php' ), 'post_id' => intval( $post->ID ) ) );
 		}
 	}
 }
@@ -199,10 +200,10 @@ function should_views_be_displayed($views_options = null) {
 
 ### Function: Display The Post Views
 function the_views($display = true, $prefix = '', $postfix = '', $always = false) {
-	$post_views = intval(post_custom('views'));
+	$post_views = intval( get_post_meta( get_the_ID(), 'views', true ) );
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
-		$output = $prefix.str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $views_options['template']).$postfix;
+		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) ).$postfix;
 		if($display) {
 			echo apply_filters('the_views', $output);
 		} else {
@@ -212,6 +213,21 @@ function the_views($display = true, $prefix = '', $postfix = '', $always = false
 	elseif (!$display) {
 		return '';
 	}
+}
+
+### Function: Short Code For Inserting Views Into Posts
+add_shortcode( 'views', 'views_shortcode' );
+function views_shortcode( $atts ) {
+	$attributes = shortcode_atts( array( 'id' => 0 ), $atts );
+	$id = intval( $attributes['id'] );
+	if( $id === 0) {
+		$id = get_the_ID();
+	}
+	$views_options = get_option( 'views_options' );
+	$post_views = intval( get_post_meta( $id, 'views', true ) );
+	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) );
+
+	return apply_filters( 'the_views', $output );
 }
 
 
@@ -244,6 +260,7 @@ if(!function_exists('get_least_viewed')) {
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
+				$temp = str_replace("%VIEW_COUNT_ROUNDED%", postviews_round_number( $post_views ), $temp);
 				$temp = str_replace("%POST_TITLE%", $post_title, $temp);
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
@@ -292,7 +309,8 @@ if(!function_exists('get_most_viewed')) {
 				}
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
-				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
+				$temp = str_replace("%VIEW_COUNT%", number_format_i18n( $post_views ), $temp);
+				$temp = str_replace("%VIEW_COUNT_ROUNDED%", postviews_round_number( $post_views ), $temp);
 				$temp = str_replace("%POST_TITLE%", $post_title, $temp);
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
@@ -657,12 +675,10 @@ function views_sorting($local_wp_query) {
 add_action('wp','postviews_wp_stats');
 function postviews_wp_stats() {
 	if(function_exists('stats_page')) {
-		if(strpos(get_option('stats_url'), $_SERVER['REQUEST_URI']) || strpos($_SERVER['REQUEST_URI'], 'stats-options.php') || strpos($_SERVER['REQUEST_URI'], 'wp-stats/wp-stats.php')) {
-			add_filter('wp_stats_page_admin_plugins', 'postviews_page_admin_general_stats');
-			add_filter('wp_stats_page_admin_most', 'postviews_page_admin_most_stats');
-			add_filter('wp_stats_page_plugins', 'postviews_page_general_stats');
-			add_filter('wp_stats_page_most', 'postviews_page_most_stats');
-		}
+		add_filter('wp_stats_page_admin_plugins', 'postviews_page_admin_general_stats');
+		add_filter('wp_stats_page_admin_most', 'postviews_page_admin_most_stats');
+		add_filter('wp_stats_page_plugins', 'postviews_page_general_stats');
+		add_filter('wp_stats_page_most', 'postviews_page_most_stats');
 	}
 }
 
@@ -750,6 +766,7 @@ function increment_views() {
 		$post_views = get_post_custom( $post_id );
 		$post_views = intval( $post_views['views'][0] );
 		update_post_meta( $post_id, 'views', ( $post_views + 1 ) );
+		do_action( 'postviews_increment_views_ajax', ( $post_views + 1 ) );
 		echo ( $post_views + 1 );
 		exit();
 	}
@@ -793,6 +810,18 @@ function sort_postviews($query) {
 	}
 }
 
+### Function: Round Numbers To K (Thousand), M (Million) or B (Billion)
+function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
+	if( $number < $min_value ) {
+		return number_format_i18n( $number );
+	}
+	$alphabets = array( 1000000000 => 'B', 1000000 => 'M', 1000 => 'K' );
+	foreach( $alphabets as $key => $value )
+		if( $number >= $key ) {
+			return round( $number / $key, $decimal ) . '' . $value;
+		}
+}
+
 
 ### Class: WP-PostViews Widget
  class WP_Widget_PostViews extends WP_Widget {
@@ -804,14 +833,13 @@ function sort_postviews($query) {
 
 	// Display Widget
 	function widget($args, $instance) {
-		extract($args);
 		$title = apply_filters('widget_title', esc_attr($instance['title']));
 		$type = esc_attr($instance['type']);
 		$mode = esc_attr($instance['mode']);
 		$limit = intval($instance['limit']);
 		$chars = intval($instance['chars']);
 		$cat_ids = explode(',', esc_attr($instance['cat_ids']));
-		echo $before_widget.$before_title.$title.$after_title;
+		echo $args['before_widget'] . $args['before_title'] . $title . $args['after_title'];
 		echo '<ul>'."\n";
 		switch($type) {
 			case 'least_viewed':
@@ -828,7 +856,7 @@ function sort_postviews($query) {
 				break;
 		}
 		echo '</ul>'."\n";
-		echo $after_widget;
+		echo  $args['after_widget'];
 	}
 
 	// When Widget Control Form Is Posted
@@ -848,13 +876,16 @@ function sort_postviews($query) {
 
 	// DIsplay Widget Control Form
 	function form($instance) {
-		$instance = wp_parse_args((array) $instance, array('title' => __('Views', 'wp-postviews'), 'type' => 'most_viewed', 'mode' => 'both', 'limit' => 10, 'chars' => 200, 'cat_ids' => '0'));
+		$instance = wp_parse_args((array) $instance, array('title' => __('Views', 'wp-postviews'), 'type' => 'most_viewed', 'mode' => '', 'limit' => 10, 'chars' => 200, 'cat_ids' => '0'));
 		$title = esc_attr($instance['title']);
 		$type = esc_attr($instance['type']);
-		$mode = esc_attr($instance['mode']);
+		$mode = trim(esc_attr($instance['mode']));
 		$limit = intval($instance['limit']);
 		$chars = intval($instance['chars']);
 		$cat_ids = esc_attr($instance['cat_ids']);
+		$post_types = get_post_types(array(
+			'public' => true
+		));
 ?>
 		<p>
 			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'wp-postviews'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label>
@@ -873,9 +904,12 @@ function sort_postviews($query) {
 		<p>
 			<label for="<?php echo $this->get_field_id('mode'); ?>"><?php _e('Include Views From:', 'wp-postviews'); ?>
 				<select name="<?php echo $this->get_field_name('mode'); ?>" id="<?php echo $this->get_field_id('mode'); ?>" class="widefat">
-					<option value="both"<?php selected('both', $mode); ?>><?php _e('Posts &amp; Pages', 'wp-postviews'); ?></option>
-					<option value="post"<?php selected('post', $mode); ?>><?php _e('Posts Only', 'wp-postviews'); ?></option>
-					<option value="page"<?php selected('page', $mode); ?>><?php _e('Pages Only', 'wp-postviews'); ?></option>
+					<option value=""<?php selected('', $mode); ?>><?php _e('All', 'wp-postviews'); ?></option>
+					<?php if($post_types > 0): ?>
+						<?php foreach($post_types as $post_type): ?>
+							<option value="<?php echo $post_type; ?>"<?php selected($post_type, $mode); ?>><?php printf(__('%s Only', 'wp-postviews'), ucfirst($post_type)); ?></option>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</select>
 			</label>
 		</p>
@@ -945,4 +979,8 @@ function views_activation( $network_wide ) {
 		add_option( $option_name, $option );
 	}
 }
-?>
+
+### Function: Parse View Options
+function views_options_parse($key) {
+	return !empty($_POST[$key]) ? $_POST[$key] : null;
+}
