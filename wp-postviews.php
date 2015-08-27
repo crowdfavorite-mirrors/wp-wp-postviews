@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.70
+Version: 1.71
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-postviews
@@ -635,16 +635,6 @@ function add_views_fields($post_ID) {
 }
 
 
-### Function: Delete Views Custom Fields
-add_action('delete_post', 'delete_views_fields');
-function delete_views_fields($post_ID) {
-	global $wpdb;
-	if(!wp_is_post_revision($post_ID)) {
-		delete_post_meta($post_ID, 'views');
-	}
-}
-
-
 ### Function: Views Public Variables
 add_filter('query_vars', 'views_variables');
 function views_variables($public_query_vars) {
@@ -824,9 +814,9 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
 ### Class: WP-PostViews Widget
  class WP_Widget_PostViews extends WP_Widget {
 	// Constructor
-	function WP_Widget_PostViews() {
+	function __construct() {
 		$widget_ops = array('description' => __('WP-PostViews views statistics', 'wp-postviews'));
-		$this->WP_Widget('views', __('Views', 'wp-postviews'), $widget_ops);
+		parent::__construct('views', __('Views', 'wp-postviews'), $widget_ops);
 	}
 
 	// Display Widget
